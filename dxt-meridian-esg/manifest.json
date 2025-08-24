@@ -1,0 +1,160 @@
+{
+  "dxt_version": "0.1",
+  "name": "meridian-esg",
+  "display_name": "Meridian ESG Development Assistant",
+  "version": "1.0.0",
+  "description": "Desktop extension for managing ESG/Sustainability data with Supabase integration",
+  "long_description": "A comprehensive MCP server for the Meridian ESG platform, providing tools for database management, data validation, report generation, and development workflow automation. Integrates with Supabase for real-time data operations and includes security-first design with RLS policy management.",
+  "author": {
+    "name": "Meridian ESG Team",
+    "email": "dev@meridian-esg.com",
+    "url": "https://meridian-esg.com"
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meridian-esg/dxt-extension"
+  },
+  "homepage": "https://meridian-esg.com/dxt",
+  "documentation": "https://docs.meridian-esg.com/dxt",
+  "support": "https://github.com/meridian-esg/dxt-extension/issues",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "runtime_args": [],
+      "env_vars": {
+        "NODE_ENV": "production"
+      }
+    }
+  },
+  "user_config": [
+    {
+      "name": "supabase_url",
+      "display_name": "Supabase URL",
+      "description": "Your Supabase project URL",
+      "type": "string",
+      "required": true,
+      "placeholder": "https://your-project.supabase.co"
+    },
+    {
+      "name": "supabase_anon_key",
+      "display_name": "Supabase Anon Key",
+      "description": "Your Supabase anonymous key (safe for client-side)",
+      "type": "string",
+      "required": true,
+      "sensitive": false
+    },
+    {
+      "name": "supabase_service_key",
+      "display_name": "Supabase Service Key",
+      "description": "Your Supabase service role key (for admin operations)",
+      "type": "string",
+      "required": false,
+      "sensitive": true
+    },
+    {
+      "name": "environment",
+      "display_name": "Environment",
+      "description": "Development environment (local, staging, production)",
+      "type": "string",
+      "required": false,
+      "default": "local",
+      "enum": ["local", "staging", "production"]
+    },
+    {
+      "name": "enable_debug",
+      "display_name": "Enable Debug Mode",
+      "description": "Enable detailed logging for debugging",
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "workspace_dir",
+      "display_name": "Workspace Directory",
+      "description": "Root directory of the Meridian ESG project",
+      "type": "directory",
+      "required": false,
+      "default": "."
+    },
+    {
+      "name": "max_query_results",
+      "display_name": "Maximum Query Results",
+      "description": "Maximum number of results to return from database queries",
+      "type": "number",
+      "required": false,
+      "default": 100,
+      "min": 1,
+      "max": 1000
+    }
+  ],
+  "tools": [
+    {
+      "name": "supabase_query",
+      "description": "Execute a Supabase query with RLS"
+    },
+    {
+      "name": "validate_esg_data",
+      "description": "Validate ESG data against framework standards"
+    },
+    {
+      "name": "generate_report",
+      "description": "Generate ESG compliance reports"
+    },
+    {
+      "name": "manage_rls_policies",
+      "description": "Create and manage RLS policies"
+    },
+    {
+      "name": "run_migrations",
+      "description": "Execute database migrations"
+    },
+    {
+      "name": "audit_security",
+      "description": "Perform security audit on database and code"
+    },
+    {
+      "name": "test_coverage",
+      "description": "Check test coverage and run tests"
+    },
+    {
+      "name": "dev_workflow",
+      "description": "Execute development workflow commands"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "setup_organization",
+      "description": "Set up a new organization with proper RLS policies",
+      "prompt": "Create a new organization with the following requirements:\n1. Enable RLS on all tables\n2. Set up proper role hierarchy\n3. Configure audit logging\n4. Initialize default ESG frameworks"
+    },
+    {
+      "name": "security_review",
+      "description": "Perform a comprehensive security review",
+      "prompt": "Conduct a security review checking:\n1. RLS policies on all tables\n2. Service key usage\n3. Input validation\n4. Authentication flows\n5. Session management"
+    }
+  ],
+  "keywords": [
+    "esg",
+    "sustainability",
+    "supabase",
+    "database",
+    "rls",
+    "reporting",
+    "compliance",
+    "gri",
+    "tcfd",
+    "issb"
+  ],
+  "compatibility": {
+    "claude_desktop": {
+      "min_version": "0.10.0"
+    },
+    "platforms": ["darwin", "win32", "linux"],
+    "node": {
+      "min_version": "18.0.0"
+    }
+  }
+}
