@@ -58,9 +58,9 @@ export const UserProfile: FC<UserProfileProps> = ({
 }) => {
   // Derive display values outside render
   const joinedDate = useMemo(() => {
-    if (!profile.createdAt) return 'Recently joined'
-    return `Joined ${formatDistanceToNow(new Date(profile.createdAt), { addSuffix: true })}`
-  }, [profile.createdAt])
+    if (!profile.created_at) return 'Recently joined'
+    return `Joined ${formatDistanceToNow(new Date(profile.created_at), { addSuffix: true })}`
+  }, [profile.created_at])
 
   const displayName = useMemo(() => {
     return profile.fullName || profile.email?.split('@')[0] || 'Anonymous User'
