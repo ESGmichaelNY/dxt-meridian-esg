@@ -7,10 +7,6 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database/generated'
-import { validateEnv } from '@/lib/utils/validation'
-
-// Validate environment variables
-const env = typeof window !== 'undefined' ? process.env : validateEnv()
 
 /**
  * Supabase client for browser/client-side usage.
@@ -18,14 +14,17 @@ const env = typeof window !== 'undefined' ? process.env : validateEnv()
  * 
  * @example
  * ```ts
- * import { supabase } from '@/lib/supabase/client'
+ * import { createClient } from '@/lib/supabase/client'
  * 
+ * const supabase = createClient()
  * const { data, error } = await supabase
  *   .from('profiles')
  *   .select('*')
  * ```
  */
-export const supabase = createBrowserClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}

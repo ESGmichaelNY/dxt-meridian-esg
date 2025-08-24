@@ -13,60 +13,72 @@ Closes #
 - [ ] Performance improvement
 - [ ] Code refactoring
 
-## Contributor Self-Check
+## Contributor Self-Check ✅
 Before assigning reviewers, please verify:
 
-### Code Quality
-- [ ] Code follows our exemplar patterns (UserProfile.tsx, validation.ts, use-user-data.ts)
-- [ ] Naming conventions followed (PascalCase components, kebab-case hooks/utils)
-- [ ] No `any` types or unsafe casts
-- [ ] Imports are organized and minimal
-- [ ] Comments/TSDoc added where necessary
+### General
+- [ ] Created feature branch: `ai-feature-<name>`
+- [ ] File/folder names follow conventions (PascalCase components, kebab-case hooks)
+- [ ] All types explicit; no `any` or unchecked casts
+- [ ] Imports ordered and minimal; removed unused imports
+- [ ] No secrets, hardcoded values, or magic numbers
+- [ ] Added/updated meaningful comments/TSDoc
 
-### Testing
-- [ ] Tests written for new functionality
-- [ ] All tests pass (`pnpm test`)
-- [ ] Coverage meets 80% threshold
-- [ ] Edge cases considered and tested
+### Components (if applicable)
+- [ ] Props typed with TypeScript interfaces
+- [ ] Accessibility handled (semantic HTML, ARIA labels, alt text)
+- [ ] Minimal local state; derived values memoized
+- [ ] Presentation and data fetching separated
+- [ ] Follows `components/features/organizations/UserProfile.tsx` pattern
 
-### Security
-- [ ] All inputs validated with Zod
-- [ ] No service role keys in frontend code
-- [ ] RLS policies added/updated if database changes
-- [ ] No hardcoded secrets or magic values
-- [ ] XSS and SQL injection prevention considered
+### Utilities (if applicable)
+- [ ] Inputs validated with Zod
+- [ ] Functions are pure (no side effects)
+- [ ] Errors consistent via helpers (`parseOrThrow`, `result`, `makeGuard`)
+- [ ] Follows `lib/utils/validation.ts` pattern
 
-### Performance
-- [ ] Unnecessary re-renders avoided
-- [ ] Heavy computations memoized
-- [ ] API calls properly cached/debounced
-- [ ] Bundle size impact considered
+### Hooks (if applicable)
+- [ ] Remote state modeled as `idle / loading / success / error`
+- [ ] API data validated at boundary with Zod
+- [ ] Cleanup logic included (AbortController)
+- [ ] Stable references with `useCallback` / `useMemo`
+- [ ] Follows `hooks/queries/use-user-data.ts` pattern
+
+### Security & Performance
+- [ ] All external data validated before use
+- [ ] No sensitive info leaked in errors/logs
+- [ ] RLS policies added/updated if touching database
+- [ ] Avoided unnecessary re-renders; used memoization where needed
+- [ ] Service role key NOT exposed to frontend
+
+## Testing
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] All tests pass: `pnpm test`
+- [ ] Test coverage ≥ 80%
+- [ ] RLS policies tested (if applicable)
+- [ ] Added unit tests
+- [ ] Added integration tests (if applicable)
+
+## Pre-Commit Verification
+```bash
+pnpm verify  # Must pass
+pnpm build   # Must succeed
+```
 
 ## Review Standards
-This PR follows the design patterns from our golden exemplars:
-- `components/features/organizations/UserProfile.tsx` - Component patterns
-- `lib/utils/validation.ts` - Validation patterns
-- `hooks/queries/use-user-data.ts` - Data fetching patterns
+This PR should match the design, style, and conventions of our exemplar files:
+- `components/features/organizations/UserProfile.tsx`
+- `lib/utils/validation.ts`
+- `hooks/queries/use-user-data.ts`
 
-## Testing Instructions
-<!-- How can reviewers test these changes? -->
-
-1. 
-2. 
-3. 
-
-## Screenshots
-<!-- If applicable, add screenshots to help explain your changes -->
-
-## Checklist
-- [ ] My code follows the project's style guidelines
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
+## Screenshots (if UI changes)
+<!-- Add screenshots here if there are visual changes -->
 
 ## Reviewer Notes
-<!-- Any additional context, concerns, or follow-up tasks -->
+<!-- Add any additional context, concerns, or areas needing special attention -->
+
+## Deployment Checklist (if applicable)
+- [ ] Database migrations tested
+- [ ] Environment variables documented
+- [ ] Breaking changes communicated
+- [ ] Performance impact assessed

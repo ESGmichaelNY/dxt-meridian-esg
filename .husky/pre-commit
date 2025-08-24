@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Prevent direct commits to main branch
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$branch" = "main" ]; then
+  echo "❌ Direct commits to main branch are not allowed!"
+  echo "📝 Please create a feature branch: git checkout -b ai-feature-<name>"
+  exit 1
+fi
+
+# Run verification
+echo "🔍 Running pre-commit checks..."
+pnpm verify
