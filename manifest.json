@@ -1,0 +1,23 @@
+{
+  "dxt_version": "0.1",
+  "name": "user_config",
+  "version": "1.0.0",
+  "description": "initial mcp",
+  "author": {
+    "name": "michael willis",
+    "email": "michaeljwillis@gmail.com"
+  },
+  "homepage": "https://esg-advising.com",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "license": "MIT"
+}
