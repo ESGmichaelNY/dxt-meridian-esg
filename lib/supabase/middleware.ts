@@ -1,24 +1,18 @@
 /**
- * Supabase Middleware
+ * middleware.ts (Supabase)
  * 
- * Refreshes user sessions and manages auth cookies.
- * Must be configured in middleware.ts to run on all routes.
+ * Authentication middleware for protecting routes and refreshing sessions.
  */
 
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import type { Database } from '@/types/database/generated'
 
-/**
- * Updates the user's session if expired
- * Handles cookie management for auth state
- */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
-  const supabase = createServerClient<Database>(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -27,9 +21,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -41,35 +33,29 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refreshing the auth token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Refresh session if expired - required for Server Components
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Protected routes
-  const protectedPaths = ['/dashboard', '/organizations', '/reports', '/settings']
-  const isProtectedPath = protectedPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
-  )
+  // Protected routes check
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
+                          request.nextUrl.pathname.startsWith('/organizations') ||
+                          request.nextUrl.pathname.startsWith('/settings')
 
-  // Redirect to login if accessing protected route without auth
-  if (!user && isProtectedPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    url.searchParams.set('redirectTo', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+  // Redirect logic
+  if (!user && isProtectedRoute) {
+    // Not authenticated, redirect to login
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/auth/login'
+    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect to dashboard if accessing auth pages while logged in
-  const authPaths = ['/auth/login', '/auth/signup']
-  const isAuthPath = authPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
-  )
-
-  if (user && isAuthPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  if (user && isAuthRoute) {
+    // Already authenticated, redirect to dashboard
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/dashboard'
+    return NextResponse.redirect(redirectUrl)
   }
 
   return supabaseResponse

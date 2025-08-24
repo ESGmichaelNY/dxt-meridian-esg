@@ -1,11 +1,8 @@
 /**
- * Supabase Server Client
+ * server.ts
  * 
- * Server-side Supabase client for use in Server Components,
- * Route Handlers, and Server Actions.
- * 
- * IMPORTANT: Always create a new client for each request to ensure
- * proper cookie handling and user isolation.
+ * Server-side Supabase client for use in Server Components and API routes.
+ * Handles cookie-based auth for SSR.
  */
 
 import { createServerClient } from '@supabase/ssr'
@@ -13,10 +10,19 @@ import { cookies } from 'next/headers'
 import type { Database } from '@/types/database/generated'
 
 /**
- * Creates a Supabase client for server components
- * Handles cookie-based auth automatically
+ * Create a Supabase client for server-side usage.
+ * Automatically handles cookie-based auth.
  * 
- * @returns Supabase client configured for server-side use
+ * @example
+ * ```ts
+ * import { createClient } from '@/lib/supabase/server'
+ * 
+ * export async function getProfile() {
+ *   const supabase = await createClient()
+ *   const { data: { user } } = await supabase.auth.getUser()
+ *   // ...
+ * }
+ * ```
  */
 export async function createClient() {
   const cookieStore = await cookies()
@@ -43,37 +49,4 @@ export async function createClient() {
       },
     }
   )
-}
-
-/**
- * Gets the current authenticated user
- * Always use this instead of getSession() for security
- * 
- * @returns User object or null if not authenticated
- */
-export async function getUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error || !user) {
-    return null
-  }
-  
-  return user
-}
-
-/**
- * Ensures the user is authenticated
- * Throws an error if not authenticated
- * 
- * @returns Authenticated user object
- */
-export async function requireUser() {
-  const user = await getUser()
-  
-  if (!user) {
-    throw new Error('Authentication required')
-  }
-  
-  return user
 }

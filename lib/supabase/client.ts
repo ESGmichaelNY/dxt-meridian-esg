@@ -1,20 +1,31 @@
 /**
- * Supabase Browser Client
+ * client.ts
  * 
- * Client-side Supabase client for use in browser components.
- * Uses the latest @supabase/ssr package for cookie management.
+ * Browser-safe Supabase client using only the anon key.
+ * This client respects RLS policies and is safe for frontend use.
  */
 
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database/generated'
+import { validateEnv } from '@/lib/utils/validation'
+
+// Validate environment variables
+const env = typeof window !== 'undefined' ? process.env : validateEnv()
 
 /**
- * Creates a Supabase client for browser/client components
- * This client uses the anon key which is safe to expose
+ * Supabase client for browser/client-side usage.
+ * Uses anon key which respects RLS policies.
+ * 
+ * @example
+ * ```ts
+ * import { supabase } from '@/lib/supabase/client'
+ * 
+ * const { data, error } = await supabase
+ *   .from('profiles')
+ *   .select('*')
+ * ```
  */
-export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+export const supabase = createBrowserClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
