@@ -1,10 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { useEffect, useState, Fragment } from 'react'
-import type { User } from '@supabase/supabase-js'
+import { usePathname } from 'next/navigation'
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -14,31 +18,7 @@ const navigation = [
 ]
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-    }
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -51,7 +31,8 @@ export default function Header() {
             </svg>
             <span className="ml-2 text-xl font-bold text-gray-900">Meridian ESG</span>
           </Link>
-          {user && (
+          
+          <SignedIn>
             <div className="ml-10 hidden md:block">
               <div className="flex items-baseline space-x-4">
                 {navigation.map((item) => {
@@ -73,11 +54,26 @@ export default function Header() {
                 })}
               </div>
             </div>
-          )}
+          </SignedIn>
         </div>
         
         <div className="flex items-center">
-          {user ? (
+          <SignedOut>
+            <div className="flex items-center space-x-4">
+              <SignInButton mode="modal">
+                <button className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                  Get started
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
+          
+          <SignedIn>
             <div className="flex items-center space-x-4">
               <div className="relative hidden md:block">
                 <button className="flex items-center rounded-full bg-white p-1 text-gray-400 hover:text-gray-600">
@@ -88,68 +84,21 @@ export default function Header() {
                 </button>
               </div>
               
-              <div className="relative">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="flex items-center space-x-3 rounded-lg bg-white p-2 text-sm hover:bg-gray-50"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white">
-                    {user.email?.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden text-gray-700 md:block">{user.email}</span>
-                  <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                
-                {mobileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                    <Link
-                      href="/settings/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Your Profile
-                    </Link>
-                    <Link
-                      href="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Settings
-                    </Link>
-                    <hr className="my-1" />
-                    <button
-                      onClick={handleSignOut}
-                      className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </div>
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-10 w-10"
+                  }
+                }}
+              />
             </div>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/auth/login"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              >
-                Get started
-              </Link>
-            </div>
-          )}
+          </SignedIn>
         </div>
       </nav>
       
       {/* Mobile menu */}
-      {user && (
+      <SignedIn>
         <div className="md:hidden">
           <div className="space-y-1 px-2 pb-3 pt-2">
             {navigation.map((item) => {
@@ -171,7 +120,7 @@ export default function Header() {
             })}
           </div>
         </div>
-      )}
+      </SignedIn>
     </header>
   )
 }
