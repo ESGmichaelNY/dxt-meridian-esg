@@ -1,6 +1,8 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
-import { createClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
+import { getDb } from '@/lib/db/server'
+import { profiles, organizationMembers } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 export async function POST() {
   try {
@@ -21,35 +23,61 @@ export async function POST() {
       return NextResponse.json({ error: 'No email found' }, { status: 400 })
     }
     
-    // Sync with Supabase
-    const supabase = createClient()
+    // Get Drizzle database instance
+    const db = getDb()
     
-    // Sync user profile
-    const { error: profileError } = await supabase.rpc('ensure_profile_exists', {
-      p_user_id: user.id,
-      p_email: email,
-      p_full_name: fullName || null
-    })
-    
-    if (profileError) {
-      console.error('Error syncing user profile:', profileError)
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
-    }
+    // Upsert user profile using Drizzle
+    await db
+      .insert(profiles)
+      .values({
+        id: user.id,
+        email,
+        fullName: fullName || null,
+        updatedAt: new Date().toISOString(),
+      })
+      .onConflictDoUpdate({
+        target: profiles.id,
+        set: {
+          email,
+          fullName: fullName || null,
+          updatedAt: new Date().toISOString(),
+        }
+      })
     
     // If user has an active organization, sync organization membership
     if (authContext.orgId && authContext.orgRole) {
-      const { error: orgError } = await supabase
-        .from('organization_members')
-        .upsert({
-          user_id: user.id,
-          organization_id: authContext.orgId,
-          role: authContext.orgRole,
-        }, {
-          onConflict: 'user_id,organization_id'
-        })
+      // Check if membership already exists
+      const existingMembership = await db
+        .select()
+        .from(organizationMembers)
+        .where(
+          and(
+            eq(organizationMembers.userId, user.id),
+            eq(organizationMembers.organizationId, authContext.orgId)
+          )
+        )
+        .limit(1)
       
-      if (orgError && orgError.code !== '23505') { // Ignore duplicate key errors
-        console.error('Error syncing organization membership:', orgError)
+      if (existingMembership.length === 0) {
+        // Create new membership
+        await db
+          .insert(organizationMembers)
+          .values({
+            userId: user.id,
+            organizationId: authContext.orgId,
+            role: authContext.orgRole as 'owner' | 'admin' | 'member' | 'viewer',
+          })
+      } else if (existingMembership[0].role !== authContext.orgRole) {
+        // Update role if changed
+        await db
+          .update(organizationMembers)
+          .set({ role: authContext.orgRole as 'owner' | 'admin' | 'member' | 'viewer' })
+          .where(
+            and(
+              eq(organizationMembers.userId, user.id),
+              eq(organizationMembers.organizationId, authContext.orgId)
+            )
+          )
       }
     }
     
