@@ -14,6 +14,27 @@ Automatically generates two types of documentation when you add a new feature:
 - Developer documentation with technical implementation details
 - User documentation with step-by-step guides and screenshot placeholders
 
+## Current Project Context
+
+**Tech Stack:**
+- **Framework**: Next.js 15.5.0 (App Router)
+- **Authentication**: Clerk (with organizations support)
+- **Database**: PostgreSQL 17 via Supabase
+- **ORM**: Drizzle ORM (ALL database operations use Drizzle, not Supabase client)
+- **Styling**: Tailwind CSS v4.1.12
+- **State Management**: Zustand
+- **Forms**: React Hook Form + Zod validation
+- **Testing**: Vitest
+- **Package Manager**: pnpm
+
+**Project Structure:**
+- `/app` - Next.js App Router pages and API routes
+- `/components` - React components
+- `/hooks` - Custom React hooks
+- `/lib/db` - Drizzle ORM database layer
+- `/docs` - Documentation files
+- `/supabase/migrations` - Database migrations
+
 ## Steps
 
 1. **Parse the feature name from the command arguments**
@@ -26,16 +47,18 @@ Automatically generates two types of documentation when you add a new feature:
 
 3. **Analyze the codebase for the feature**
    - Search for files containing the feature name in their path or content
-   - Look in common directories: src/, app/, components/, services/, api/, routes/
+   - Look in project directories: app/, components/, hooks/, lib/, api/
    - Identify file types to understand the feature scope:
-     - Frontend: .jsx, .tsx, .vue, .css, .scss files
-     - Backend: controllers, services, models, migrations, routes
-     - API: files in api/ or routes/ directories
+     - Frontend: .tsx files in app/ and components/
+     - Backend: API routes in app/api/
+     - Database: Drizzle schema in lib/db/schema.ts
+     - Hooks: Custom hooks in hooks/
    - Extract key information:
-     - Function/method names
-     - API endpoint definitions
-     - Component names
-     - Database schema changes
+     - React component names and props
+     - API endpoint definitions (GET, POST, etc.)
+     - Drizzle schema definitions
+     - Clerk authentication requirements
+     - Zod validation schemas
 
 4. **Generate Developer Documentation**
    - Create file at `docs/dev/{feature-name}-implementation.md`
@@ -100,9 +123,15 @@ Automatically generates two types of documentation when you add a new feature:
 |--------|----------|-------------|------|
 {Discovered endpoints}
 
-### Data Models
-```javascript
-{Extracted schemas/models}
+### Data Models (Drizzle Schema)
+```typescript
+// From lib/db/schema.ts
+{Extracted Drizzle table definitions}
+```
+
+### Validation Schemas (Zod)
+```typescript
+{Extracted Zod schemas from components/forms}
 ```
 
 ### File Structure
@@ -338,40 +367,49 @@ Next steps:
 ## Example Run
 
 ```bash
-$ claude document-feature user-authentication
+$ claude document-feature organization-sync
 
-🔍 Analyzing feature: user-authentication
+🔍 Analyzing feature: organization-sync
 > Is this a frontend, backend, or full-stack feature? full-stack
-> Brief description of this feature (one sentence): Complete authentication system with login, logout, and session management
+> Brief description of this feature (one sentence): Synchronizes Clerk organizations with database using webhooks and API
 
 📂 Scanning codebase...
-  ✓ Found 23 related files
-  ✓ Detected 5 API endpoints
-  ✓ Found 4 React components
+  ✓ Found 12 related files
+  ✓ Detected 3 API endpoints (webhooks, sync)
+  ✓ Found 2 React components (OrganizationProvider, OrganizationSync)
+  ✓ Found 1 custom hook (useOrganizationSync)
   ✓ Database migrations detected
 
 📝 Generating developer documentation...
-  ✓ Created: docs/dev/user-authentication-implementation.md
-  - Documented 5 API endpoints
-  - Added JWT token schema
-  - Included middleware details
-  - Test coverage: 89%
+  ✓ Created: docs/dev/organization-sync-implementation.md
+  - Documented webhook handlers
+  - Added Drizzle schema for organizations
+  - Included Clerk integration details
+  - Documented sync mechanisms
 
 📝 Generating user documentation...
-  ✓ Created: docs/user/how-to-user-authentication.md
-  - Added 6 screenshot placeholders
-  - Created login flow guide
-  - Added security tips section
-  - Included password requirements
+  ✓ Created: docs/user/how-to-organization-sync.md
+  - Added 4 screenshot placeholders
+  - Created organization setup guide
+  - Added member management section
+  - Included troubleshooting steps
 
 📸 Screenshot checklist...
-  ✓ Created: docs/user/screenshots/user-authentication-checklist.md
-  - Listed 6 required screenshots
+  ✓ Created: docs/user/screenshots/organization-sync-checklist.md
+  - Listed 4 required screenshots
   - Added capture instructions
 
 🔗 Updating documentation...
   ✓ Updated docs/README.md
-  ✓ Found and linked 3 related documents
+  ✓ Found and linked 5 related documents
 
 ✅ Documentation generated successfully!
 ```
+
+## Project-Specific Notes
+
+1. **Authentication**: All features should document Clerk integration requirements
+2. **Database**: Use Drizzle ORM for all database operations, never raw SQL or Supabase client
+3. **API Routes**: Follow Next.js App Router conventions (route.ts files)
+4. **Organization Context**: Document if feature requires organization selection
+5. **Type Safety**: Include TypeScript types and Zod schemas in documentation
