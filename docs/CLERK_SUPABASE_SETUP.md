@@ -117,9 +117,15 @@ USING (
 
 For local development, we're using:
 - Simple user sync without JWT templates
-- Service role key for database operations
+- Drizzle ORM for ALL database operations (not Supabase client)
 - RLS temporarily disabled
 - Manual sync on user sign-in
+- Organization sync via webhooks and API
+
+**Database Access Strategy:**
+- **Drizzle ORM**: Primary method for all database operations
+- **Supabase**: Used only for database hosting and migrations
+- **Type Safety**: Full TypeScript support through Drizzle schema
 
 This approach works well for development and can be upgraded to the full JWT integration for production.
 

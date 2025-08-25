@@ -2,6 +2,8 @@
 
 This document describes how Drizzle ORM has been integrated with our Supabase PostgreSQL database.
 
+**IMPORTANT**: This project uses Drizzle ORM for ALL database operations. While Supabase is used for the PostgreSQL database hosting, all queries and operations should be performed through Drizzle for type safety and consistency.
+
 ## 📚 Reference Documentation
 - [Drizzle with Supabase](https://supabase.com/docs/guides/database/drizzle)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)

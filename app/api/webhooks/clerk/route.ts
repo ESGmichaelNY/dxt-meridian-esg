@@ -2,6 +2,9 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { Webhook } from 'svix'
 import { createClient } from '@/lib/supabase/service'
+import { getDb } from '@/lib/db/server'
+import { organizations, organizationMembers, profiles } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 export async function POST(req: Request) {
   // Get the headers
@@ -58,6 +61,107 @@ export async function POST(req: Request) {
       }
     }
     
+    // Handle organization events
+    if (eventType === 'organization.created' || eventType === 'organization.updated') {
+      const { id, name, slug, created_at } = evt.data as any
+      
+      const db = getDb()
+      
+      try {
+        await db
+          .insert(organizations)
+          .values({
+            id,  // Use Clerk org ID directly
+            name,
+            slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+            createdAt: new Date(created_at).toISOString(),
+            updatedAt: new Date().toISOString()
+          })
+          .onConflictDoUpdate({
+            target: organizations.id,
+            set: {
+              name,
+              slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+              updatedAt: new Date().toISOString()
+            }
+          })
+        
+        console.log(`✅ Organization ${id} synced to database`)
+      } catch (error) {
+        console.error('Error syncing organization:', error)
+        return new Response('Database error', { status: 500 })
+      }
+    }
+    
+    // Handle organization membership
+    if (eventType === 'organizationMembership.created' || eventType === 'organizationMembership.updated') {
+      const { organization, public_user_data, role } = evt.data as any
+      
+      const db = getDb()
+      
+      try {
+        // Ensure user profile exists first
+        const userId = public_user_data.user_id
+        const userEmail = public_user_data.email || `${userId}@placeholder.local`
+        
+        await db
+          .insert(profiles)
+          .values({
+            id: userId,
+            email: userEmail,
+            fullName: public_user_data.first_name && public_user_data.last_name 
+              ? `${public_user_data.first_name} ${public_user_data.last_name}`
+              : null,
+            updatedAt: new Date().toISOString()
+          })
+          .onConflictDoNothing()
+        
+        // Now insert or update membership
+        await db
+          .insert(organizationMembers)
+          .values({
+            organizationId: organization.id,
+            userId: userId,
+            role: role || 'member',
+            joinedAt: new Date().toISOString()
+          })
+          .onConflictDoUpdate({
+            target: [organizationMembers.organizationId, organizationMembers.userId],
+            set: {
+              role: role || 'member'
+            }
+          })
+        
+        console.log(`✅ Organization membership synced for user ${userId} in org ${organization.id}`)
+      } catch (error) {
+        console.error('Error syncing membership:', error)
+        return new Response('Database error', { status: 500 })
+      }
+    }
+    
+    // Handle organization membership deletion
+    if (eventType === 'organizationMembership.deleted') {
+      const { organization, public_user_data } = evt.data as any
+      
+      const db = getDb()
+      
+      try {
+        await db
+          .delete(organizationMembers)
+          .where(
+            and(
+              eq(organizationMembers.organizationId, organization.id),
+              eq(organizationMembers.userId, public_user_data.user_id)
+            )
+          )
+        
+        console.log(`✅ Organization membership removed for user ${public_user_data.user_id} from org ${organization.id}`)
+      } catch (error) {
+        console.error('Error removing membership:', error)
+        return new Response('Database error', { status: 500 })
+      }
+    }
+    
     return new Response('Webhook received', { status: 200 })
   }
   
@@ -103,6 +207,105 @@ export async function POST(req: Request) {
       }
       
       console.log(`✅ User ${id} synced to database`)
+    }
+  }
+  
+  // Handle organization events
+  if (eventType === 'organization.created' || eventType === 'organization.updated') {
+    const { id, name, slug, created_at } = evt.data as any
+    
+    const db = getDb()
+    
+    try {
+      await db
+        .insert(organizations)
+        .values({
+          id,  // Use Clerk org ID directly
+          name,
+          slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+          createdAt: new Date(created_at).toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+        .onConflictDoUpdate({
+          target: organizations.id,
+          set: {
+            name,
+            slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+            updatedAt: new Date().toISOString()
+          }
+        })
+      
+      console.log(`✅ Organization ${id} synced to database`)
+    } catch (error) {
+      console.error('Error syncing organization:', error)
+      return new Response('Database error', { status: 500 })
+    }
+  }
+  
+  // Handle organization membership
+  if (eventType === 'organizationMembership.created' || eventType === 'organizationMembership.updated') {
+    const { organization, public_user_data, role } = evt.data as any
+    
+    const db = getDb()
+    
+    try {
+      // Ensure user profile exists first
+      const userId = public_user_data.user_id
+      const userEmail = public_user_data.email || `${userId}@placeholder.local`
+      
+      await db
+        .insert(profiles)
+        .values({
+          id: userId,
+          email: userEmail,
+          fullName: public_user_data.first_name && public_user_data.last_name 
+            ? `${public_user_data.first_name} ${public_user_data.last_name}`
+            : null,
+          updatedAt: new Date().toISOString()
+        })
+        .onConflictDoNothing()
+      
+      // Now insert or update membership
+      await db
+        .insert(organizationMembers)
+        .values({
+          organizationId: organization.id,
+          userId: userId,
+          role: role || 'member',
+          joinedAt: new Date().toISOString()
+        })
+        .onConflictDoUpdate({
+          target: [organizationMembers.organizationId, organizationMembers.userId],
+          set: {
+            role: role || 'member'
+          }
+        })
+      
+      console.log(`✅ Organization membership synced for user ${userId} in org ${organization.id}`)
+    } catch (error) {
+      console.error('Error syncing membership:', error)
+      return new Response('Database error', { status: 500 })
+    }
+  }
+  
+  // Handle organization membership deletion
+  if (eventType === 'organizationMembership.deleted') {
+    const { organization, public_user_data } = evt.data as any
+    
+    const db = getDb()
+    
+    try {
+      await db
+        .delete(organizationMembers)
+        .where(
+          eq(organizationMembers.organizationId, organization.id) &&
+          eq(organizationMembers.userId, public_user_data.user_id)
+        )
+      
+      console.log(`✅ Organization membership removed for user ${public_user_data.user_id} from org ${organization.id}`)
+    } catch (error) {
+      console.error('Error removing membership:', error)
+      return new Response('Database error', { status: 500 })
     }
   }
 
