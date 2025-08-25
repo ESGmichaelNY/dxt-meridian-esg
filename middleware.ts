@@ -8,10 +8,29 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks/clerk(.*)',
 ]);
 
+// Define routes that require organization selection
+const isOrganizationRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/reports(.*)',
+  '/settings(.*)',
+]);
+
 export default clerkMiddleware(async (auth, request) => {
   // Protect all routes except public ones
   if (!isPublicRoute(request)) {
     await auth.protect();
+    
+    // Check if organization is required for this route
+    if (isOrganizationRoute(request)) {
+      const { orgId } = await auth();
+      
+      // Redirect to organization selection if no org is selected
+      if (!orgId) {
+        const organizationsUrl = new URL('/organizations', request.url);
+        organizationsUrl.searchParams.set('redirect_url', request.url);
+        return Response.redirect(organizationsUrl);
+      }
+    }
   }
 });
 

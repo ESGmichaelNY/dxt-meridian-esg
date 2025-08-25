@@ -8,6 +8,7 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  OrganizationSwitcher,
 } from '@clerk/nextjs'
 
 const navigation = [
@@ -75,6 +76,18 @@ export default function Header() {
           
           <SignedIn>
             <div className="flex items-center space-x-4">
+              <OrganizationSwitcher 
+                afterCreateOrganizationUrl="/organizations"
+                afterSelectOrganizationUrl="/dashboard"
+                createOrganizationMode="modal"
+                appearance={{
+                  elements: {
+                    rootBox: "flex items-center",
+                    organizationSwitcherTrigger: "px-3 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  }
+                }}
+              />
+              
               <div className="relative hidden md:block">
                 <button className="flex items-center rounded-full bg-white p-1 text-gray-400 hover:text-gray-600">
                   <span className="sr-only">View notifications</span>

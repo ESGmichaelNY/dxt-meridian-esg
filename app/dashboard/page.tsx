@@ -1,3 +1,5 @@
+'use client'
+
 import { 
   ArrowDown, 
   ArrowUp, 
@@ -11,6 +13,7 @@ import {
   Users
 } from 'lucide-react'
 import Link from 'next/link'
+import { useOrganization, useUser } from '@clerk/nextjs'
 
 const stats = [
   { 
@@ -57,12 +60,30 @@ const upcomingDeadlines = [
 ]
 
 export default function DashboardPage() {
+  const { organization, isLoaded: orgLoaded } = useOrganization()
+  const { user, isLoaded: userLoaded } = useUser()
+
+  if (!orgLoaded || !userLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-64"></div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome back! Here's your ESG performance overview.</p>
+        <p className="text-gray-600 mt-2">
+          Welcome back, {user?.firstName || 'there'}! 
+          {organization && ` Here's the ESG performance overview for ${organization.name}.`}
+          {!organization && ' Please select an organization to view ESG data.'}
+        </p>
       </div>
 
       {/* Stats Grid */}
