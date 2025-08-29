@@ -16,7 +16,7 @@ export const organizationSizeEnum = pgEnum('organization_size', ['small', 'mediu
 
 // Organizations table
 export const organizations = pgTable('organizations', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: text('id').primaryKey(), // Clerk organization ID
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   industry: text('industry'),
@@ -43,7 +43,7 @@ export const profiles = pgTable('profiles', {
 // Organization Members junction table
 export const organizationMembers = pgTable('organization_members', {
   id: uuid('id').defaultRandom().primaryKey(),
-  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
   role: organizationRoleEnum('role').notNull().default('member'),
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
@@ -56,7 +56,7 @@ export const organizationMembers = pgTable('organization_members', {
 // Organization Invitations table
 export const organizationInvitations = pgTable('organization_invitations', {
   id: uuid('id').defaultRandom().primaryKey(),
-  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   email: text('email').notNull(),
   role: organizationRoleEnum('role').notNull().default('member'),
   token: uuid('token').defaultRandom().notNull().unique(),

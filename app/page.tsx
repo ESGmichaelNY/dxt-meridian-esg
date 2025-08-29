@@ -32,13 +32,13 @@ export default function LandingPage() {
             
             <div className="flex items-center space-x-4">
               <Link 
-                href="/auth/login" 
+                href="/sign-in" 
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Sign in
               </Link>
               <Link 
-                href="/auth/signup"
+                href="/sign-up"
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Get started
@@ -76,7 +76,7 @@ export default function LandingPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link 
-                  href="/auth/signup"
+                  href="/sign-up"
                   className="inline-flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Start free trial
@@ -169,7 +169,7 @@ export default function LandingPage() {
             Join leading organizations already using Meridian ESG to streamline their sustainability journey.
           </p>
           <Link 
-            href="/auth/signup"
+            href="/sign-up"
             className="inline-flex items-center justify-center bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
           >
             Get started for free

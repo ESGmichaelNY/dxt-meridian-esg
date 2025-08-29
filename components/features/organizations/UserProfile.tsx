@@ -63,8 +63,8 @@ export const UserProfile: FC<UserProfileProps> = ({
   }, [profile.created_at])
 
   const displayName = useMemo(() => {
-    return profile.fullName || profile.email?.split('@')[0] || 'Anonymous User'
-  }, [profile.fullName, profile.email])
+    return profile.full_name || profile.email?.split('@')[0] || 'Anonymous User'
+  }, [profile.full_name, profile.email])
 
   const initials = useMemo(() => {
     const names = displayName.split(' ')
@@ -104,9 +104,9 @@ export const UserProfile: FC<UserProfileProps> = ({
         )}
         aria-label={isEditing ? `Change avatar for ${displayName}` : `Avatar for ${displayName}`}
       >
-        {profile.avatarUrl ? (
+        {profile.avatar_url ? (
           <img
-            src={profile.avatarUrl}
+            src={profile.avatar_url}
             alt=""  // Decorative image, description in button aria-label
             className="h-full w-full rounded-full object-cover"
             loading="lazy"

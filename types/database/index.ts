@@ -26,14 +26,8 @@ export type OrganizationMember = Tables['organization_members']['Row']
 export type OrganizationMemberInsert = Tables['organization_members']['Insert']
 export type OrganizationMemberUpdate = Tables['organization_members']['Update']
 
-export type TemporalData = Tables['temporal_data']['Row']
-export type TemporalDataInsert = Tables['temporal_data']['Insert']
-export type TemporalDataUpdate = Tables['temporal_data']['Update']
-
-// Enum types (if any)
-export type UserRole = Enums['user_role']
-export type DataCategory = Enums['data_category']
-export type ReportStatus = Enums['report_status']
+// Enum types
+export type OrganizationRole = Enums['organization_role']
 
 // Utility types for API responses
 export type ApiResponse<T> = 
@@ -74,8 +68,8 @@ export type WithRelations<T, R extends Record<string, unknown>> = T & R
 // type ProfileWithOrg = WithRelations<Profile, { organization: Organization }>
 
 // Query builder types for better type inference
-export type SelectQuery<T extends keyof Tables> = {
-  select?: Array<ColumnNames<T>>
+export interface SelectQuery<T extends keyof Tables> {
+  select?: ColumnNames<T>[]
   where?: Partial<Tables[T]['Row']>
   orderBy?: ColumnNames<T>
   limit?: number

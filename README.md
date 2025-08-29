@@ -6,8 +6,10 @@ A comprehensive ESG/Sustainability data management platform built with Next.js 1
 
 - **Framework:** Next.js 15.5.0 (App Router, Server Components)
 - **UI:** React 19.0.0 (with new hooks: useActionState, useFormStatus, useOptimistic)
-- **Styling:** Tailwind CSS v4 (CSS-based configuration)
-- **Database:** Supabase (PostgreSQL with Row-Level Security)
+- **Authentication:** Clerk (with organizations/multi-tenancy support)
+- **Database:** PostgreSQL 17 (via Supabase hosting)
+- **ORM:** Drizzle ORM (type-safe database queries)
+- **Styling:** Tailwind CSS v4.1.12 (with @tailwindcss/postcss)
 - **Language:** TypeScript 5.7.3 (strict mode)
 - **Testing:** Vitest + React Testing Library
 - **Package Manager:** pnpm 10.15.0 (via Corepack)
@@ -41,25 +43,28 @@ pnpm approve-builds
 # Copy environment template
 cp .env.local.example .env.local
 
-# Edit .env.local with your Supabase credentials
+# Edit .env.local with:
+# - Clerk API keys (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)
+# - Supabase credentials (for database only)
+# - Database URL for Drizzle ORM
 ```
 
-### 3. Supabase Setup
+### 3. Database Setup
 
 ```bash
-# Start local Supabase
+# Start local Supabase (PostgreSQL 17)
 pnpm supabase:start
 
 # The console will display your local credentials:
-# - API URL: http://localhost:54321
-# - Anon Key: [your-anon-key]
-# - Service Role Key: [your-service-role-key] (⚠️ NEVER expose to client!)
+# - Database URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+# - API URL: http://localhost:54321 (used for service operations only)
 
-# Run database migrations
-pnpm db:migrate
+# Run Drizzle migrations
+pnpm drizzle:generate  # Generate SQL from schema
+pnpm drizzle:push      # Apply schema to database
 
-# Generate TypeScript types
-pnpm db:types
+# Pull existing database schema (if needed)
+pnpm drizzle:pull      # Import existing DB structure
 ```
 
 ### 4. Development
@@ -77,8 +82,12 @@ pnpm dev
 .
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
-│   ├── auth/              # Authentication pages
-│   └── dashboard/         # Protected pages
+│   │   ├── webhooks/      # Clerk webhook handlers
+│   │   └── user/sync/     # User sync endpoints
+│   ├── sign-in/           # Clerk sign-in page
+│   ├── sign-up/           # Clerk sign-up page
+│   ├── dashboard/         # Protected dashboard
+│   └── organizations/     # Organization management
 ├── components/
 │   ├── features/          # Feature-specific components
 │   └── ui/                # Reusable UI components
@@ -86,7 +95,10 @@ pnpm dev
 │   ├── queries/           # Data fetching hooks
 │   └── mutations/         # Data mutation hooks
 ├── lib/
-│   ├── supabase/          # Supabase clients
+│   ├── db/                # Drizzle ORM configuration
+│   │   ├── schema.ts      # Database schema definitions
+│   │   └── server.ts      # Server-side DB client
+│   ├── supabase/          # Supabase service clients
 │   ├── utils/             # Utility functions
 │   └── api/               # API helpers
 ├── services/              # Business logic

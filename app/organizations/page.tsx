@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { 
   useOrganizationList,
   useOrganization,
-  CreateOrganization,
 } from '@clerk/nextjs'
+import CreateOrgModal from '@/components/organizations/CreateOrgModal'
 
 export default function OrganizationsPage() {
   const [showCreateOrg, setShowCreateOrg] = useState(false)
-  const { organizationList, isLoaded, setActive } = useOrganizationList()
+  const { userMemberships, isLoaded, setActive } = useOrganizationList()
   const { organization } = useOrganization()
 
   if (!isLoaded) {
@@ -47,29 +47,10 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Create Organization Modal */}
-      {showCreateOrg && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowCreateOrg(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <div className="absolute top-4 right-4">
-                <button
-                  onClick={() => setShowCreateOrg(false)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <CreateOrganization 
-                afterCreateOrganizationUrl="/organizations"
-                skipInvitationScreen={false}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateOrgModal 
+        isOpen={showCreateOrg}
+        onClose={() => setShowCreateOrg(false)}
+      />
 
       {/* Current Organization */}
       {organization && (
@@ -103,9 +84,9 @@ export default function OrganizationsPage() {
           <h2 className="text-lg font-semibold text-gray-900">All Organizations</h2>
         </div>
         
-        {organizationList && organizationList.length > 0 ? (
+        {userMemberships?.data && userMemberships.data.length > 0 ? (
           <ul className="divide-y divide-gray-200">
-            {organizationList.map((org) => (
+            {userMemberships.data.map((org: any) => (
               <li key={org.organization.id} className="px-6 py-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">

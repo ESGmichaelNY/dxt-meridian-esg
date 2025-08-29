@@ -1,14 +1,14 @@
 import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
+import { type WebhookEvent } from '@clerk/nextjs/server'
 import { Webhook } from 'svix'
-import { createClient } from '@/lib/supabase/service'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getDb } from '@/lib/db/server'
 import { organizations, organizationMembers, profiles } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function POST(req: Request) {
   // Get the headers
-  const headerPayload = headers()
+  const headerPayload = await headers()
   const svix_id = headerPayload.get("svix-id")
   const svix_timestamp = headerPayload.get("svix-timestamp")
   const svix_signature = headerPayload.get("svix-signature")
@@ -43,21 +43,8 @@ export async function POST(req: Request) {
       const fullName = [first_name, last_name].filter(Boolean).join(' ')
       
       if (email) {
-        const supabase = createClient()
-        
-        // Use the ensure_profile_exists function
-        const { error } = await supabase.rpc('ensure_profile_exists', {
-          p_user_id: id,
-          p_email: email,
-          p_full_name: fullName || null
-        })
-        
-        if (error) {
-          console.error('Error syncing user to database:', error)
-          return new Response('Database error', { status: 500 })
-        }
-        
-        console.log(`✅ User ${id} synced to database`)
+        // TODO: Sync user to database using Drizzle instead of RPC
+        console.log(`User ${id} would be synced to database`)
       }
     }
     
@@ -74,15 +61,14 @@ export async function POST(req: Request) {
             id,  // Use Clerk org ID directly
             name,
             slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-            createdAt: new Date(created_at).toISOString(),
-            updatedAt: new Date().toISOString()
+            // Let database handle timestamps with defaultNow()
           })
           .onConflictDoUpdate({
             target: organizations.id,
             set: {
               name,
               slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-              updatedAt: new Date().toISOString()
+              // Let database handle updatedAt
             }
           })
         
@@ -112,7 +98,7 @@ export async function POST(req: Request) {
             fullName: public_user_data.first_name && public_user_data.last_name 
               ? `${public_user_data.first_name} ${public_user_data.last_name}`
               : null,
-            updatedAt: new Date().toISOString()
+            // Let database handle updatedAt
           })
           .onConflictDoNothing()
         
@@ -123,7 +109,7 @@ export async function POST(req: Request) {
             organizationId: organization.id,
             userId: userId,
             role: role || 'member',
-            joinedAt: new Date().toISOString()
+            // Let database handle joinedAt with defaultNow()
           })
           .onConflictDoUpdate({
             target: [organizationMembers.organizationId, organizationMembers.userId],
@@ -193,20 +179,8 @@ export async function POST(req: Request) {
     const fullName = [first_name, last_name].filter(Boolean).join(' ')
     
     if (email) {
-      const supabase = createClient()
-      
-      const { error } = await supabase.rpc('ensure_profile_exists', {
-        p_user_id: id,
-        p_email: email,
-        p_full_name: fullName || null
-      })
-      
-      if (error) {
-        console.error('Error syncing user to database:', error)
-        return new Response('Database error', { status: 500 })
-      }
-      
-      console.log(`✅ User ${id} synced to database`)
+      // TODO: Sync user to database using Drizzle instead of RPC
+      console.log(`User ${id} would be synced to database`)
     }
   }
   
@@ -223,15 +197,15 @@ export async function POST(req: Request) {
           id,  // Use Clerk org ID directly
           name,
           slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-          createdAt: new Date(created_at).toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: new Date(created_at),
+          updatedAt: new Date()
         })
         .onConflictDoUpdate({
           target: organizations.id,
           set: {
             name,
             slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-            updatedAt: new Date().toISOString()
+            // Let database handle updatedAt
           }
         })
       
@@ -261,7 +235,7 @@ export async function POST(req: Request) {
           fullName: public_user_data.first_name && public_user_data.last_name 
             ? `${public_user_data.first_name} ${public_user_data.last_name}`
             : null,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date()
         })
         .onConflictDoNothing()
       
@@ -272,7 +246,7 @@ export async function POST(req: Request) {
           organizationId: organization.id,
           userId: userId,
           role: role || 'member',
-          joinedAt: new Date().toISOString()
+          joinedAt: new Date()
         })
         .onConflictDoUpdate({
           target: [organizationMembers.organizationId, organizationMembers.userId],

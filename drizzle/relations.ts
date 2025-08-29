@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { profiles, organizationMembers, organizations, usersInAuth, organizationInvitations } from "./schema";
+import { profiles, organizationMembers, organizations, organizationInvitations } from "./schema";
 
 export const organizationMembersRelations = relations(organizationMembers, ({one}) => ({
 	profile: one(profiles, {
@@ -22,16 +22,12 @@ export const organizationsRelations = relations(organizations, ({many}) => ({
 }));
 
 export const organizationInvitationsRelations = relations(organizationInvitations, ({one}) => ({
-	usersInAuth: one(usersInAuth, {
+	invitedByProfile: one(profiles, {
 		fields: [organizationInvitations.invitedBy],
-		references: [usersInAuth.id]
+		references: [profiles.id]
 	}),
 	organization: one(organizations, {
 		fields: [organizationInvitations.organizationId],
 		references: [organizations.id]
 	}),
-}));
-
-export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
-	organizationInvitations: many(organizationInvitations),
 }));

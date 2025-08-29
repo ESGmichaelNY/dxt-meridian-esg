@@ -22,14 +22,14 @@ export async function POST(req: Request) {
         id,
         name,
         slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-        updatedAt: new Date().toISOString()
+        // Don't set updatedAt - let database handle it with defaultNow()
       })
       .onConflictDoUpdate({
         target: organizations.id,
         set: {
           name,
           slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-          updatedAt: new Date().toISOString()
+          // Don't set updatedAt - let database handle it
         }
       })
     

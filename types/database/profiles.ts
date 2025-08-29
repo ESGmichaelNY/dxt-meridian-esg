@@ -23,7 +23,7 @@ export interface UserProfile extends ProfileRow {
 
 // Profile with organization memberships
 export interface ProfileWithMemberships extends ProfileRow {
-  organization_members: Array<{
+  organization_members: {
     organization_id: string
     role: 'owner' | 'admin' | 'member' | 'viewer'
     organization: {
@@ -31,7 +31,7 @@ export interface ProfileWithMemberships extends ProfileRow {
       name: string
       slug: string
     }
-  }>
+  }[]
 }
 
 // Public profile (safe to expose)

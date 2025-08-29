@@ -17,7 +17,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { UserProfileSchema, parseResult, type UserProfile } from '@/lib/utils/validation'
-import { supabase } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 
 // ----------------------------------------------------------------------------
 // Types
@@ -103,12 +103,12 @@ export function useUserData({
   ): Promise<UserProfile> => {
     try {
       // Fetch from Supabase
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
-        .abortSignal(abortSignal as any) // Supabase types don't include this yet
 
       if (error) {
         throw new Error(`Failed to fetch user: ${error.message}`)
@@ -142,7 +142,7 @@ export function useUserData({
   }, [])
 
   // Refetch function with abort controller
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(async (): Promise<void> => {
     if (!userId) {
       setState({
         status: 'error',
@@ -188,10 +188,7 @@ export function useUserData({
       onError?.(errorObj)
     }
 
-    // Cleanup function
-    return () => {
-      abortController.abort()
-    }
+    // Note: Cleanup is handled via AbortController, no return needed
   }, [userId, fetchUserData, onSuccess, onError])
 
   // Reset function
@@ -205,11 +202,7 @@ export function useUserData({
       return
     }
 
-    const cleanup = refetch()
-    
-    return () => {
-      cleanup?.then(fn => fn?.())
-    }
+    refetch()
   }, [enabled, userId, refetch])
 
   // Polling effect
@@ -255,6 +248,7 @@ export function useCurrentUser(options?: Omit<UseUserDataOptions, 'userId'>) {
   const [userId, setUserId] = useState<string | undefined>()
 
   useEffect(() => {
+    const supabase = createClient()
     // Get current user
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id)

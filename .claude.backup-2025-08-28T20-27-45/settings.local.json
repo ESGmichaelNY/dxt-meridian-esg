@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(psql:*)",
+      "Bash(npx supabase:*)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker ps:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(open http://127.0.0.1:54323)",
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(docker exec:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npx supabase migration:*)",
+      "WebFetch(domain:clerk.com)",
+      "WebFetch(domain:supabase.com)",
+      "Bash(npx supabase:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pnpm drizzle-kit introspect:*)",
+      "Bash(npm view:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm drizzle:pull:*)",
+      "Bash(open http://localhost:3000/sign-in)",
+      "Bash(open http://localhost:3000/dashboard)",
+      "Bash(pnpm list:*)",
+      "Bash(cp:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}

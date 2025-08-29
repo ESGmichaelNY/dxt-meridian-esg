@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import reactPlugin from 'eslint-plugin-react'
+// @ts-ignore - no types available
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import nextPlugin from '@next/eslint-plugin-next'
 

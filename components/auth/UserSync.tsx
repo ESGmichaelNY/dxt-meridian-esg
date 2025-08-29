@@ -21,7 +21,8 @@ export default function UserSync() {
             const data = await response.json()
             console.log('✅ User synced:', data)
           } else {
-            console.error('Failed to sync user')
+            const errorText = await response.text()
+            console.error('Failed to sync user:', response.status, errorText)
           }
         } catch (error) {
           console.error('Error syncing user:', error)

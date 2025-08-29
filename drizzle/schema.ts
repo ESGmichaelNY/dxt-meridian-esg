@@ -18,7 +18,7 @@ export const profiles = pgTable("profiles", {
 ]);
 
 export const organizations = pgTable("organizations", {
-	id: text().default(uuid_generate_v4()).primaryKey().notNull(),
+	id: text().primaryKey().notNull(),
 	name: text().notNull(),
 	slug: text().notNull(),
 	industry: text(),
@@ -60,7 +60,7 @@ export const organizationInvitations = pgTable("organization_invitations", {
 	email: text().notNull(),
 	role: organizationRole().default('member').notNull(),
 	token: uuid().default(sql`uuid_generate_v4()`).notNull(),
-	invitedBy: uuid("invited_by").notNull(),
+	invitedBy: text("invited_by").notNull(),
 	expiresAt: timestamp("expires_at", { withTimezone: true, mode: 'string' }).default(sql`(now() + '7 days'::interval)`).notNull(),
 	acceptedAt: timestamp("accepted_at", { withTimezone: true, mode: 'string' }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -69,7 +69,7 @@ export const organizationInvitations = pgTable("organization_invitations", {
 	index("idx_organization_invitations_token").using("btree", table.token.asc().nullsLast().op("uuid_ops")),
 	foreignKey({
 			columns: [table.invitedBy],
-			foreignColumns: [users.id],
+			foreignColumns: [profiles.id],
 			name: "organization_invitations_invited_by_fkey"
 		}),
 	foreignKey({

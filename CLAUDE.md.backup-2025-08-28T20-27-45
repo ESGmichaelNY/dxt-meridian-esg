@@ -1,0 +1,141 @@
+# AI Assistant Instructions - CRITICAL
+
+**THIS FILE CONTAINS CRITICAL INSTRUCTIONS FOR AI ASSISTANTS**
+
+## ⚠️ MANDATORY TECH STACK - DO NOT CHANGE
+
+### Authentication: Clerk ONLY
+- ✅ USE: `@clerk/nextjs` for ALL authentication
+- ✅ USE: Clerk webhooks for user/organization sync
+- ❌ NEVER: Use Supabase Auth
+- ❌ NEVER: Implement custom authentication
+
+### Database: Drizzle ORM ONLY
+- ✅ USE: `import { getDb } from '@/lib/db/server'` for ALL database operations
+- ✅ USE: Drizzle schema definitions in `lib/db/schema.ts`
+- ✅ USE: Text IDs for Clerk compatibility
+- ❌ NEVER: Use Supabase client for database queries
+- ❌ NEVER: Use UUID primary keys
+- ❌ NEVER: Write raw SQL without Drizzle
+
+### Styling: Tailwind CSS v4 ONLY
+- ✅ USE: Tailwind v4.1.12 with @tailwindcss/postcss
+- ❌ NEVER: Downgrade to Tailwind v3
+- ❌ NEVER: Use CSS-in-JS libraries
+
+## Code Examples
+
+### ✅ CORRECT Database Query
+```typescript
+import { getDb } from '@/lib/db/server'
+import { profiles } from '@/lib/db/schema'
+
+const db = getDb()
+const users = await db.select().from(profiles)
+```
+
+### ❌ WRONG Database Query
+```typescript
+// NEVER DO THIS
+import { createClient } from '@/lib/supabase/client'
+const supabase = createClient()
+const { data } = await supabase.from('profiles').select()
+```
+
+### ✅ CORRECT Authentication
+```typescript
+import { useUser } from '@clerk/nextjs'
+const { user, isLoaded } = useUser()
+```
+
+### ❌ WRONG Authentication
+```typescript
+// NEVER DO THIS
+const { data: { user } } = await supabase.auth.getUser()
+```
+
+## Project Structure
+
+```
+app/
+  api/
+    webhooks/clerk/    # Clerk webhooks ONLY
+    user/sync/         # User sync endpoints
+  sign-in/            # Clerk sign-in page
+  sign-up/            # Clerk sign-up page
+  dashboard/          # Protected pages
+lib/
+  db/
+    schema.ts         # Drizzle schema definitions
+    server.ts         # Server-side DB client
+```
+
+## Commands
+
+```bash
+# Development
+pnpm dev              # Start dev server
+
+# Database (Drizzle)
+pnpm drizzle:generate # Generate migrations
+pnpm drizzle:push    # Apply schema to DB
+pnpm drizzle:pull    # Pull existing schema
+
+# Type checking
+pnpm typecheck       # TypeScript checking
+pnpm lint           # ESLint
+
+# Testing
+pnpm test           # Run tests
+```
+
+## Environment Variables
+
+```env
+# Clerk (REQUIRED)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+# Database (REQUIRED)
+DATABASE_URL=postgresql://...
+
+# Supabase (hosting only, NOT for auth)
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+## Common Mistakes to Avoid
+
+1. **Using Supabase Auth** - We use Clerk exclusively
+2. **Using Supabase client for DB** - We use Drizzle ORM exclusively
+3. **Using UUID IDs** - We use text IDs for Clerk compatibility
+4. **Downgrading Tailwind** - We use v4, not v3
+5. **Using Prisma** - We use Drizzle, not Prisma
+6. **Raw SQL queries** - Always use Drizzle ORM
+
+## When Asked About Tech Stack
+
+Always respond with:
+- **Auth**: Clerk (NOT Supabase Auth)
+- **Database**: PostgreSQL with Drizzle ORM (NOT Supabase client)
+- **Styling**: Tailwind CSS v4
+- **Framework**: Next.js 15.5.0 with App Router
+
+## Testing Reminders
+
+After any code changes:
+1. Run `pnpm typecheck` to ensure no TypeScript errors
+2. Run `pnpm lint` to check code style
+3. Test authentication flow at `/sign-in`
+4. Verify organization sync works
+
+## Important Files
+
+- `lib/db/schema.ts` - Database schema (Drizzle)
+- `middleware.ts` - Clerk authentication middleware
+- `app/api/webhooks/clerk/route.ts` - Clerk webhook handler
+- `app/api/user/sync/route.ts` - User sync endpoint
+
+---
+
+**If you're unsure about any technical decision, refer to `/docs/TECH_STACK.md` for the complete decision record.**
