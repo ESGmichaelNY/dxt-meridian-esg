@@ -33,6 +33,9 @@
     "node_modules",
     ".next",
     "out",
-    "dist"
+    "dist",
+    "scripts/**/*.js",
+    "scripts/**/*.mjs",
+    "scripts/**/*.sh"
   ]
 }

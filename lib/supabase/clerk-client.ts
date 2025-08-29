@@ -26,7 +26,7 @@ export async function createClerkSupabaseClient() {
     {
       global: {
         headers: {
-          Authorization: `Bearer ${token || supabaseAnonKey}`,
+          Authorization: `Bearer ${token ?? supabaseAnonKey}`,
         },
       },
       auth: {

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
-  BarChart3, 
+  BarChart3 as _BarChart3, 
   Building2,
   FileText, 
   Globe,

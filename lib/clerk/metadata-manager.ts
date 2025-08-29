@@ -46,7 +46,11 @@ export async function updateUserESGMetadata(
   metadata: Partial<UserESGMetadata>
 ) {
   try {
-    const updates: any = {}
+    const updates: {
+      publicMetadata?: Partial<UserESGMetadata['public']>
+      privateMetadata?: Partial<UserESGMetadata['private']>
+      unsafeMetadata?: Partial<UserESGMetadata['unsafe']>
+    } = {}
     
     if (metadata.public) {
       updates.publicMetadata = metadata.public
@@ -97,12 +101,12 @@ export async function getUserCompleteProfile(userId: string) {
     // ESG-specific from metadata
     department: user.publicMetadata?.department,
     jobTitle: user.publicMetadata?.jobTitle,
-    timezone: user.publicMetadata?.timezone || 'UTC',
-    preferences: user.publicMetadata?.preferences || {},
+    timezone: user.publicMetadata?.timezone ?? 'UTC',
+    preferences: user.publicMetadata?.preferences ?? {},
     
     // Permissions (private)
-    dataAccessLevel: user.privateMetadata?.dataAccessLevel || 'viewer',
-    permissions: user.privateMetadata?.permissions || [],
+    dataAccessLevel: user.privateMetadata?.dataAccessLevel ?? 'viewer',
+    permissions: user.privateMetadata?.permissions ?? [],
     
     // Profile completeness
     profileCompleteness: calculateProfileCompleteness(user)
@@ -184,7 +188,10 @@ export async function updateOrganizationESGMetadata(
       throw new Error('Only organization admins can update metadata')
     }
     
-    const updates: any = {}
+    const updates: {
+      publicMetadata?: Partial<OrganizationESGMetadata['public']>
+      privateMetadata?: Partial<OrganizationESGMetadata['private']>
+    } = {}
     
     if (metadata.public) {
       updates.publicMetadata = metadata.public
@@ -226,15 +233,18 @@ export async function getOrganizationESGProfile(orgId: string) {
     
     // ESG Profile
     industry: org.publicMetadata?.industry,
-    reportingFrameworks: org.publicMetadata?.reportingFrameworks || [],
-    certifications: org.publicMetadata?.certifications || [],
-    sustainabilityGoals: org.publicMetadata?.sustainabilityGoals || {},
+    reportingFrameworks: org.publicMetadata?.reportingFrameworks ?? [],
+    certifications: org.publicMetadata?.certifications ?? [],
+    sustainabilityGoals: org.publicMetadata?.sustainabilityGoals ?? {},
     
     // Subscription (only if admin)
     subscription: await getSubscriptionDetails(org),
     
     // Compliance readiness
-    complianceScore: calculateComplianceReadiness(org),
+    complianceScore: calculateComplianceReadiness({
+      publicMetadata: org.publicMetadata as OrganizationESGMetadata['public'] | undefined,
+      privateMetadata: org.privateMetadata as OrganizationESGMetadata['private'] | undefined
+    }),
     
     // Data completeness
     dataCompleteness: await calculateDataCompleteness(orgId)
@@ -245,12 +255,24 @@ export async function getOrganizationESGProfile(orgId: string) {
 // HELPER FUNCTIONS
 // ==========================================
 
-function calculateProfileCompleteness(user: any): number {
+function calculateProfileCompleteness(user: {
+  firstName?: string | null
+  lastName?: string | null
+  emailAddresses?: unknown[]
+  phoneNumbers?: unknown[]
+  imageUrl?: string | null
+  publicMetadata?: {
+    department?: string
+    jobTitle?: string
+    timezone?: string
+  }
+  twoFactorEnabled?: boolean
+}): number {
   const fields = [
     user.firstName,
     user.lastName,
-    user.emailAddresses?.length > 0,
-    user.phoneNumbers?.length > 0,
+    user.emailAddresses && user.emailAddresses.length > 0,
+    user.phoneNumbers && user.phoneNumbers.length > 0,
     user.imageUrl,
     user.publicMetadata?.department,
     user.publicMetadata?.jobTitle,
@@ -262,22 +284,43 @@ function calculateProfileCompleteness(user: any): number {
   return Math.round((completed / fields.length) * 100)
 }
 
-function calculateComplianceReadiness(org: any): number {
+function calculateComplianceReadiness(org: {
+  publicMetadata?: {
+    reportingFrameworks?: string[]
+    fiscalYearEnd?: string
+    industry?: string
+    country?: string
+    sustainabilityGoals?: {
+      netZeroTarget?: string
+    }
+  }
+  privateMetadata?: {
+    auditLogEnabled?: boolean
+    dataRetentionDays?: number
+  }
+}): number {
   const requirements = [
-    org.publicMetadata?.reportingFrameworks?.length > 0,
+    (org.publicMetadata?.reportingFrameworks?.length ?? 0) > 0,
     org.publicMetadata?.fiscalYearEnd,
     org.publicMetadata?.industry,
     org.publicMetadata?.country,
     org.publicMetadata?.sustainabilityGoals?.netZeroTarget,
     org.privateMetadata?.auditLogEnabled,
-    org.privateMetadata?.dataRetentionDays > 0
+    (org.privateMetadata?.dataRetentionDays ?? 0) > 0
   ]
   
   const met = requirements.filter(Boolean).length
   return Math.round((met / requirements.length) * 100)
 }
 
-async function getSubscriptionDetails(org: any) {
+async function getSubscriptionDetails(org: {
+  privateMetadata?: {
+    subscriptionTier?: string
+    subscriptionExpiry?: string
+    maxUsers?: number
+    enabledFeatures?: string[]
+  }
+}) {
   // Only return subscription details if user is admin
   const { orgRole } = await auth()
   if (orgRole !== 'org:admin' && orgRole !== 'org:owner') {
@@ -285,14 +328,14 @@ async function getSubscriptionDetails(org: any) {
   }
   
   return {
-    tier: org.privateMetadata?.subscriptionTier || 'free',
+    tier: org.privateMetadata?.subscriptionTier ?? 'free',
     expiry: org.privateMetadata?.subscriptionExpiry,
-    maxUsers: org.privateMetadata?.maxUsers || 5,
-    features: org.privateMetadata?.enabledFeatures || []
+    maxUsers: org.privateMetadata?.maxUsers ?? 5,
+    features: org.privateMetadata?.enabledFeatures ?? []
   }
 }
 
-async function calculateDataCompleteness(orgId: string): Promise<number> {
+async function calculateDataCompleteness(_orgId: string): Promise<number> {
   // This would query your database to check data completeness
   // Placeholder implementation
   return 75

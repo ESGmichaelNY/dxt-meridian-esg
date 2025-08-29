@@ -63,7 +63,7 @@ export const UserProfile: FC<UserProfileProps> = ({
   }, [profile.created_at])
 
   const displayName = useMemo(() => {
-    return profile.full_name || profile.email?.split('@')[0] || 'Anonymous User'
+    return profile.full_name ?? profile.email?.split('@')[0] ?? 'Anonymous User'
   }, [profile.full_name, profile.email])
 
   const initials = useMemo(() => {
@@ -78,7 +78,7 @@ export const UserProfile: FC<UserProfileProps> = ({
   const handleAvatarClick = useCallback(() => {
     if (isEditing && onUpdate) {
       // TODO: Implement avatar upload
-      console.log('Avatar upload not yet implemented')
+      // TODO: Avatar upload functionality not yet implemented
     }
   }, [isEditing, onUpdate])
 

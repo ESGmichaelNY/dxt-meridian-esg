@@ -14,7 +14,7 @@ import {
   Settings,
   Shield,
   Zap,
-  ChevronRight,
+  ChevronRight as _ChevronRight,
   Search,
   Sun,
   Moon,
@@ -162,7 +162,7 @@ export default function DocsLayout({
                     return (
                       <li key={item.href}>
                         <Link
-                          href={item.href || '#'}
+                          href={item.href ?? '#'}
                           className={`
                             flex items-center space-x-3 rounded-lg px-3 py-2 text-sm transition-colors
                             ${isActive 

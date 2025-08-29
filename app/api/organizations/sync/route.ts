@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
-  const body = await req.json()
+  const body = await req.json() as { id: string; name: string; slug?: string }
   const { id, name, slug } = body
   
   try {
@@ -21,14 +21,14 @@ export async function POST(req: Request) {
       .values({
         id,
         name,
-        slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
         // Don't set updatedAt - let database handle it with defaultNow()
       })
       .onConflictDoUpdate({
         target: organizations.id,
         set: {
           name,
-          slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+          slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
           // Don't set updatedAt - let database handle it
         }
       })

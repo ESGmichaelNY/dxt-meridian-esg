@@ -99,7 +99,7 @@ export function useUserData({
   // Stable fetch function
   const fetchUserData = useCallback(async (
     userId: string,
-    abortSignal?: AbortSignal
+    _abortSignal?: AbortSignal
   ): Promise<UserProfile> => {
     try {
       // Fetch from Supabase
@@ -202,7 +202,7 @@ export function useUserData({
       return
     }
 
-    refetch()
+    void refetch()
   }, [enabled, userId, refetch])
 
   // Polling effect
@@ -212,7 +212,7 @@ export function useUserData({
     }
 
     const interval = setInterval(() => {
-      refetch()
+      void refetch()
     }, pollingInterval)
 
     return () => {
@@ -250,7 +250,7 @@ export function useCurrentUser(options?: Omit<UseUserDataOptions, 'userId'>) {
   useEffect(() => {
     const supabase = createClient()
     // Get current user
-    supabase.auth.getUser().then(({ data }) => {
+    void supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id)
     })
 

@@ -7,7 +7,7 @@
 /**
  * Validate emissions data value
  */
-export function validateEmissionsData(value: any): boolean {
+export function validateEmissionsData(value: unknown): boolean {
   if (value === null || value === undefined) {
     return false
   }

@@ -83,7 +83,7 @@ export async function withServiceRole<T>(
     
     // Log successful admin operations in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Service Role Operation] Completed in ${Date.now() - startTime}ms`)
+      console.warn(`[Service Role Operation] Completed in ${Date.now() - startTime}ms`)
     }
     
     return result

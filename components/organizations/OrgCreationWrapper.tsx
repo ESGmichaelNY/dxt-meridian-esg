@@ -7,8 +7,8 @@ interface OrgCreationWrapperProps {
   onSuccess?: () => void
 }
 
-export default function OrgCreationWrapper({ onSuccess }: OrgCreationWrapperProps) {
-  const router = useRouter()
+export default function OrgCreationWrapper({ onSuccess: _onSuccess }: OrgCreationWrapperProps) {
+  const _router = useRouter()
 
   return (
     <CreateOrganization 

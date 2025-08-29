@@ -6,11 +6,11 @@ import * as schema from './schema'
 const getConnectionString = () => {
   // Use direct connection for local development
   if (process.env.NODE_ENV === 'development') {
-    return process.env.DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+    return process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
   }
   
   // Use pooled connection for production
-  return process.env.DATABASE_URL || ''
+  return process.env.DATABASE_URL ?? ''
 }
 
 // Create a singleton instance for server-side usage

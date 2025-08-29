@@ -26,7 +26,7 @@ export function useOrganizationSync() {
         })
         
         if (response.ok) {
-          console.log('✅ Organization synced')
+          // Organization synced successfully
         } else {
           const error = await response.text()
           console.error('Failed to sync organization:', error)
@@ -37,7 +37,7 @@ export function useOrganizationSync() {
     }
     
     if (isLoaded && organization) {
-      syncOrganization()
+      void syncOrganization()
     }
   }, [organization, isLoaded])
   

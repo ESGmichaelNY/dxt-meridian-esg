@@ -7,6 +7,15 @@ import {
 } from '@clerk/nextjs'
 import CreateOrgModal from '@/components/organizations/CreateOrgModal'
 
+interface OrganizationMembership {
+  organization: {
+    id: string
+    name: string
+    imageUrl?: string
+    membersCount?: number
+  }
+}
+
 export default function OrganizationsPage() {
   const [showCreateOrg, setShowCreateOrg] = useState(false)
   const { userMemberships, isLoaded, setActive } = useOrganizationList()
@@ -70,7 +79,7 @@ export default function OrganizationsPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900">{organization.name}</h3>
                 <p className="text-sm text-gray-500">
-                  {organization.membersCount || 0} member{organization.membersCount !== 1 ? 's' : ''}
+                  {organization.membersCount ?? 0} member{organization.membersCount !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -86,7 +95,7 @@ export default function OrganizationsPage() {
         
         {userMemberships?.data && userMemberships.data.length > 0 ? (
           <ul className="divide-y divide-gray-200">
-            {userMemberships.data.map((org: any) => (
+            {userMemberships.data.map((org: OrganizationMembership) => (
               <li key={org.organization.id} className="px-6 py-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -102,7 +111,7 @@ export default function OrganizationsPage() {
                         {org.organization.name}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {org.organization.membersCount || 0} member{org.organization.membersCount !== 1 ? 's' : ''}
+                        {org.organization.membersCount ?? 0} member{org.organization.membersCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>

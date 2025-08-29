@@ -18,8 +18,8 @@ export default function UserSync() {
           })
           
           if (response.ok) {
-            const data = await response.json()
-            console.log('✅ User synced:', data)
+            await response.json() // Consume the response
+            // User synced successfully
           } else {
             const errorText = await response.text()
             console.error('Failed to sync user:', response.status, errorText)
@@ -30,7 +30,7 @@ export default function UserSync() {
       }
     }
     
-    syncUser()
+    void syncUser()
   }, [user, isLoaded])
 
   return null // This component doesn't render anything

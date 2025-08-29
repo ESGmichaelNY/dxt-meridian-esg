@@ -1,10 +1,54 @@
 import { headers } from 'next/headers'
 import { type WebhookEvent } from '@clerk/nextjs/server'
 import { Webhook } from 'svix'
-import { createServiceClient } from '@/lib/supabase/service'
 import { getDb } from '@/lib/db/server'
 import { organizations, organizationMembers, profiles } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+
+// Type definitions for Clerk webhook event data
+interface OrganizationEventData {
+  id: string
+  name: string
+  slug?: string
+  created_at?: number
+}
+
+interface PublicUserData {
+  user_id: string
+  first_name?: string
+  last_name?: string
+  email?: string
+}
+
+interface OrganizationMembershipEventData {
+  organization: {
+    id: string
+    name: string
+  }
+  public_user_data: PublicUserData
+  role?: string
+}
+
+interface UserEventData {
+  id: string
+  email_addresses: { email_address: string }[]
+  first_name?: string
+  last_name?: string
+}
+
+interface UserWebhookEvent extends Omit<WebhookEvent, 'data'> {
+  data: UserEventData
+}
+
+interface OrganizationWebhookEvent extends Omit<WebhookEvent, 'data'> {
+  data: OrganizationEventData
+}
+
+interface OrganizationMembershipWebhookEvent extends Omit<WebhookEvent, 'data'> {
+  data: OrganizationMembershipEventData
+}
+
+type TypedWebhookEvent = UserWebhookEvent | OrganizationWebhookEvent | OrganizationMembershipWebhookEvent
 
 export async function POST(req: Request) {
   // Get the headers
@@ -26,21 +70,22 @@ export async function POST(req: Request) {
 
   // Create a new Svix instance with your webhook secret
   // For development, we'll use a default secret. In production, use CLERK_WEBHOOK_SECRET
-  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET || 'whsec_development_secret'
+  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET ?? 'whsec_development_secret'
   
   // For development without webhook verification
   if (webhookSecret === 'whsec_development_secret') {
     console.log('⚠️ Running in development mode without webhook verification')
     
     // Handle the webhook event
-    const evt = payload as WebhookEvent
+    const evt = payload as TypedWebhookEvent
     const eventType = evt.type
     
     if (eventType === 'user.created' || eventType === 'user.updated') {
-      const { id, email_addresses, first_name, last_name } = evt.data
+      const userEvent = evt as UserWebhookEvent
+      const { id, email_addresses, first_name, last_name } = userEvent.data
       
       const email = email_addresses[0]?.email_address
-      const fullName = [first_name, last_name].filter(Boolean).join(' ')
+      const _fullName = [first_name, last_name].filter(Boolean).join(' ')
       
       if (email) {
         // TODO: Sync user to database using Drizzle instead of RPC
@@ -50,7 +95,8 @@ export async function POST(req: Request) {
     
     // Handle organization events
     if (eventType === 'organization.created' || eventType === 'organization.updated') {
-      const { id, name, slug, created_at } = evt.data as any
+      const orgEvent = evt as OrganizationWebhookEvent
+      const { id, name, slug } = orgEvent.data
       
       const db = getDb()
       
@@ -60,14 +106,14 @@ export async function POST(req: Request) {
           .values({
             id,  // Use Clerk org ID directly
             name,
-            slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+            slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
             // Let database handle timestamps with defaultNow()
           })
           .onConflictDoUpdate({
             target: organizations.id,
             set: {
               name,
-              slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+              slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
               // Let database handle updatedAt
             }
           })
@@ -81,14 +127,15 @@ export async function POST(req: Request) {
     
     // Handle organization membership
     if (eventType === 'organizationMembership.created' || eventType === 'organizationMembership.updated') {
-      const { organization, public_user_data, role } = evt.data as any
+      const membershipEvent = evt as OrganizationMembershipWebhookEvent
+      const { organization, public_user_data, role } = membershipEvent.data
       
       const db = getDb()
       
       try {
         // Ensure user profile exists first
         const userId = public_user_data.user_id
-        const userEmail = public_user_data.email || `${userId}@placeholder.local`
+        const userEmail = public_user_data.email ?? `${userId}@placeholder.local`
         
         await db
           .insert(profiles)
@@ -108,13 +155,13 @@ export async function POST(req: Request) {
           .values({
             organizationId: organization.id,
             userId: userId,
-            role: role || 'member',
+            role: (role ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer',
             // Let database handle joinedAt with defaultNow()
           })
           .onConflictDoUpdate({
             target: [organizationMembers.organizationId, organizationMembers.userId],
             set: {
-              role: role || 'member'
+              role: (role ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer'
             }
           })
         
@@ -127,7 +174,8 @@ export async function POST(req: Request) {
     
     // Handle organization membership deletion
     if (eventType === 'organizationMembership.deleted') {
-      const { organization, public_user_data } = evt.data as any
+      const membershipEvent = evt as OrganizationMembershipWebhookEvent
+      const { organization, public_user_data } = membershipEvent.data
       
       const db = getDb()
       
@@ -153,7 +201,7 @@ export async function POST(req: Request) {
   
   // Production webhook verification
   const wh = new Webhook(webhookSecret)
-  let evt: WebhookEvent
+  let evt: TypedWebhookEvent
 
   // Verify the payload with the headers
   try {
@@ -161,7 +209,7 @@ export async function POST(req: Request) {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    }) as WebhookEvent
+    }) as TypedWebhookEvent
   } catch (err) {
     console.error('Error verifying webhook:', err)
     return new Response('Error occured', {
@@ -173,10 +221,11 @@ export async function POST(req: Request) {
   const eventType = evt.type
   
   if (eventType === 'user.created' || eventType === 'user.updated') {
-    const { id, email_addresses, first_name, last_name } = evt.data
+    const userEvent = evt as UserWebhookEvent
+    const { id, email_addresses, first_name, last_name } = userEvent.data
     
     const email = email_addresses[0]?.email_address
-    const fullName = [first_name, last_name].filter(Boolean).join(' ')
+    const _fullName = [first_name, last_name].filter(Boolean).join(' ')
     
     if (email) {
       // TODO: Sync user to database using Drizzle instead of RPC
@@ -186,7 +235,8 @@ export async function POST(req: Request) {
   
   // Handle organization events
   if (eventType === 'organization.created' || eventType === 'organization.updated') {
-    const { id, name, slug, created_at } = evt.data as any
+    const orgEvent = evt as OrganizationWebhookEvent
+    const { id, name, slug, created_at } = orgEvent.data
     
     const db = getDb()
     
@@ -196,15 +246,15 @@ export async function POST(req: Request) {
         .values({
           id,  // Use Clerk org ID directly
           name,
-          slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-          createdAt: new Date(created_at),
+          slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
+          createdAt: created_at ? new Date(created_at) : undefined,
           updatedAt: new Date()
         })
         .onConflictDoUpdate({
           target: organizations.id,
           set: {
             name,
-            slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+            slug: slug ?? name.toLowerCase().replace(/\s+/g, '-'),
             // Let database handle updatedAt
           }
         })
@@ -218,14 +268,15 @@ export async function POST(req: Request) {
   
   // Handle organization membership
   if (eventType === 'organizationMembership.created' || eventType === 'organizationMembership.updated') {
-    const { organization, public_user_data, role } = evt.data as any
+    const membershipEvent = evt as OrganizationMembershipWebhookEvent
+    const { organization, public_user_data, role } = membershipEvent.data
     
     const db = getDb()
     
     try {
       // Ensure user profile exists first
       const userId = public_user_data.user_id
-      const userEmail = public_user_data.email || `${userId}@placeholder.local`
+      const userEmail = public_user_data.email ?? `${userId}@placeholder.local`
       
       await db
         .insert(profiles)
@@ -245,13 +296,13 @@ export async function POST(req: Request) {
         .values({
           organizationId: organization.id,
           userId: userId,
-          role: role || 'member',
+          role: (role ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer',
           joinedAt: new Date()
         })
         .onConflictDoUpdate({
           target: [organizationMembers.organizationId, organizationMembers.userId],
           set: {
-            role: role || 'member'
+            role: (role ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer'
           }
         })
       
@@ -264,7 +315,8 @@ export async function POST(req: Request) {
   
   // Handle organization membership deletion
   if (eventType === 'organizationMembership.deleted') {
-    const { organization, public_user_data } = evt.data as any
+    const membershipEvent = evt as OrganizationMembershipWebhookEvent
+    const { organization, public_user_data } = membershipEvent.data
     
     const db = getDb()
     
@@ -272,8 +324,10 @@ export async function POST(req: Request) {
       await db
         .delete(organizationMembers)
         .where(
-          eq(organizationMembers.organizationId, organization.id) &&
-          eq(organizationMembers.userId, public_user_data.user_id)
+          and(
+            eq(organizationMembers.organizationId, organization.id),
+            eq(organizationMembers.userId, public_user_data.user_id)
+          )
         )
       
       console.log(`✅ Organization membership removed for user ${public_user_data.user_id} from org ${organization.id}`)

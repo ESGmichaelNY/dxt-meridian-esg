@@ -11,7 +11,7 @@ interface EmissionsDataFormProps {
   organizationId?: string
 }
 
-export function EmissionsDataForm({ onSuccess, organizationId }: EmissionsDataFormProps) {
+export function EmissionsDataForm({ onSuccess, organizationId: _organizationId }: EmissionsDataFormProps) {
   const { mutate, isPending, isError, error } = useEmissionsData()
   
   const {

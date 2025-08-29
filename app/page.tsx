@@ -55,7 +55,7 @@ export default function LandingPage() {
             <div>
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6">
                 <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                What's new: Just shipped v2.0 →
+                What&apos;s new: Just shipped v2.0 →
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">

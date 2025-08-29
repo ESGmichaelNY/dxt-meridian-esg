@@ -32,14 +32,14 @@ export async function POST() {
       .values({
         id: user.id,
         email,
-        fullName: fullName || null,
+        fullName: fullName ?? null,
         // Don't set dates - let database handle them with defaultNow()
       })
       .onConflictDoUpdate({
         target: profiles.id,
         set: {
           email,
-          fullName: fullName || null,
+          fullName: fullName ?? null,
           // Don't set updatedAt - let database handle it
         }
       })
@@ -65,13 +65,13 @@ export async function POST() {
           .values({
             userId: user.id,
             organizationId: authContext.orgId,
-            role: (authContext.orgRole?.replace('org:', '') || 'member') as 'owner' | 'admin' | 'member' | 'viewer',
+            role: (authContext.orgRole?.replace('org:', '') ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer',
           })
       } else if (existingMembership[0].role !== authContext.orgRole?.replace('org:', '')) {
         // Update role if changed
         await db
           .update(organizationMembers)
-          .set({ role: (authContext.orgRole?.replace('org:', '') || 'member') as 'owner' | 'admin' | 'member' | 'viewer' })
+          .set({ role: (authContext.orgRole?.replace('org:', '') ?? 'member') as 'owner' | 'admin' | 'member' | 'viewer' })
           .where(
             and(
               eq(organizationMembers.userId, user.id),

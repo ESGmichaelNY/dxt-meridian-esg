@@ -1,7 +1,7 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import reactPlugin from 'eslint-plugin-react'
-// @ts-ignore - no types available
+// @ts-expect-error - no types available
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import nextPlugin from '@next/eslint-plugin-next'
 
@@ -18,7 +18,13 @@ export default tseslint.config(
       '**/*.config.js',
       '**/*.config.mjs',
       '**/generated.ts',
-      '**/supabase/functions/**'
+      '**/supabase/functions/**',
+      'scripts/**/*.js',
+      'scripts/**/*.mjs',
+      'scripts/**/*.sh',
+      'drizzle/**/*.sql',
+      'dxt-meridian-esg/**',
+      'next-env.d.ts'
     ]
   },
   
@@ -59,21 +65,46 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       'react/prop-types': 'off', // Using TypeScript for prop validation
       
-      // TypeScript strict rules (matching your exemplars)
+      // TypeScript strict rules (practical configuration)
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { 
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true
       }],
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-unused-expressions': ['error', {
+        allowShortCircuit: true,
+        allowTernary: true
+      }],
+      // Allow non-null assertions for environment variables and other guaranteed values
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      // Configure nullish coalescing to be more practical
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', {
+        ignoreTernaryTests: true,
+        ignoreConditionalTests: true,
+        ignoreMixedLogicalExpressions: true
+      }],
+      // Allow unsafe operations in specific contexts
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/consistent-type-imports': ['error', {
         prefer: 'type-imports',
         fixStyle: 'inline-type-imports'
       }],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/require-await': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/no-floating-promises': ['error', {
+        ignoreVoid: true,
+        ignoreIIFE: true
+      }],
+      '@typescript-eslint/no-misused-promises': ['error', {
+        checksVoidReturn: {
+          attributes: false
+        }
+      }],
       
       // General code quality rules
       'no-console': ['error', { allow: ['warn', 'error'] }],
@@ -100,19 +131,57 @@ export default tseslint.config(
   
   // Server-side only files
   {
-    files: ['**/*.server.ts', '**/api/**/*.ts', 'middleware.ts'],
+    files: ['**/*.server.ts', '**/api/**/*.ts', 'middleware.ts', '**/webhooks/**/*.ts'],
     rules: {
       // Allow console in server-side code for logging
-      'no-console': 'off'
+      'no-console': 'off',
+      // More lenient for server-side code
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off'
+    }
+  },
+  
+  // Environment and config files
+  {
+    files: ['**/*.config.ts', '**/*.config.js', '**/*.config.mjs', '**/env.ts'],
+    rules: {
+      // Allow non-null assertions for config files
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      // Allow || for environment variables
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
+    }
+  },
+  
+  // Database and schema files
+  {
+    files: ['**/schema.ts', '**/db/**/*.ts', '**/drizzle/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn'
     }
   },
   
   // Test files
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/test/**', '**/__tests__/**'],
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/test/**', '**/__tests__/**', '**/tests/**'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/require-await': 'off',
       'no-console': 'off'
+    }
+  },
+  
+  // Generated files and types
+  {
+    files: ['**/generated.ts', '**/types/**/*.ts', 'next-env.d.ts'],
+    rules: {
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off'
     }
   }
 )

@@ -34,7 +34,11 @@ export function useEmissionsData(): UseEmissionsDataReturn {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      console.log('Emissions data to save:', data)
+      // Development logging - remove in production
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Emissions data to save:', data)
+      }
       
       setIsPending(false)
       return { success: true }

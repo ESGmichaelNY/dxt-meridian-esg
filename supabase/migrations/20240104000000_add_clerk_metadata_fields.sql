@@ -2,41 +2,38 @@
 -- File: supabase/migrations/20240104000000_add_clerk_metadata_fields.sql
 
 -- Add additional fields to profiles table
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS 
-  username TEXT,
-  profile_image_url TEXT,
-  phone_number TEXT,
-  timezone TEXT DEFAULT 'UTC',
-  locale TEXT DEFAULT 'en-US',
-  department TEXT,
-  job_title TEXT,
-  last_sign_in_at TIMESTAMPTZ,
-  two_factor_enabled BOOLEAN DEFAULT false,
-  public_metadata JSONB DEFAULT '{}',
-  private_metadata JSONB DEFAULT '{}',
-  unsafe_metadata JSONB DEFAULT '{}';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS username TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS profile_image_url TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone_number TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'UTC';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locale TEXT DEFAULT 'en-US';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS department TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS job_title TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_sign_in_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS public_metadata JSONB DEFAULT '{}';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS private_metadata JSONB DEFAULT '{}';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS unsafe_metadata JSONB DEFAULT '{}';
 
 -- Add additional fields to organizations table
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS
-  image_url TEXT,
-  logo_url TEXT,
-  max_allowed_memberships INTEGER DEFAULT 100,
-  members_count INTEGER DEFAULT 0,
-  public_metadata JSONB DEFAULT '{}',
-  private_metadata JSONB DEFAULT '{}';
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS logo_url TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS max_allowed_memberships INTEGER DEFAULT 100;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS members_count INTEGER DEFAULT 0;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS public_metadata JSONB DEFAULT '{}';
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS private_metadata JSONB DEFAULT '{}';
 
 -- Add ESG-specific columns to organizations
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS
-  industry_sector TEXT,
-  country TEXT,
-  timezone TEXT DEFAULT 'UTC',
-  fiscal_year_end TEXT, -- Format: 'MM-DD'
-  reporting_frameworks TEXT[], -- Array of framework codes
-  certifications TEXT[], -- Array of certification names
-  headquarters_location TEXT,
-  employee_count INTEGER,
-  annual_revenue DECIMAL(15,2),
-  sustainability_goals JSONB DEFAULT '{}';
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS industry_sector TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'UTC';
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS fiscal_year_end TEXT; -- Format: 'MM-DD'
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS reporting_frameworks TEXT[]; -- Array of framework codes
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS certifications TEXT[]; -- Array of certification names
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS headquarters_location TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS employee_count INTEGER;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS annual_revenue DECIMAL(15,2);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS sustainability_goals JSONB DEFAULT '{}';
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);

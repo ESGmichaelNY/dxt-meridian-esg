@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useAuth, useSession } from '@clerk/nextjs'
+import { useAuth as _useAuth, useSession } from '@clerk/nextjs'
 import { useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database/generated'
